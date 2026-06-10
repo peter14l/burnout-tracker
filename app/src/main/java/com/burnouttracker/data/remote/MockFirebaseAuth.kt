@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -99,9 +100,4 @@ class MockFirebaseAuth @Inject constructor() {
     }
 }
 
-/**
- * Extension function to await Task result
- */
-suspend fun <T> com.google.android.gms.tasks.Task<T>.await(): T {
-    return com.google.android.gms.tasks.Tasks.await(this)
-}
+

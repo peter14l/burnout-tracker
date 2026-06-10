@@ -1,6 +1,7 @@
 package com.burnouttracker.data.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -106,9 +107,4 @@ class MockFirestore @Inject constructor() {
     }
 }
 
-/**
- * Extension function to await Task result
- */
-suspend fun <T> com.google.android.gms.tasks.Task<T>.await(): T {
-    return com.google.android.gms.tasks.Tasks.await(this)
-}
+
