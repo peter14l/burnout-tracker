@@ -7,47 +7,33 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.burnouttracker.domain.model.StressEntry
 import com.burnouttracker.ui.theme.getStressColor
-
-data class JournalEntry(
-    val id: String,
-    val date: String,
-    val stressScore: Int,
-    val mood: String?,
-    val triggers: List<String>,
-    val note: String?
-)
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalScreen(
-    onEntryClick: (String) -> Unit
+    onEntryClick: (String) -> Unit,
+    viewModel: JournalViewModel = hiltViewModel()
 ) {
-    val sampleEntries = listOf(
-        JournalEntry("1", "Today, 9:30 AM", 6, "😐 Neutral", listOf("Rent", "Food"), null),
-        JournalEntry("2", "Yesterday, 8:15 AM", 4, "😌 Calm", listOf("Entertainment"), "Felt better after talking to friend"),
-        JournalEntry("3", "Jun 8, 7:45 AM", 8, "😰 Anxious", listOf("Credit Card", "Unexpected Bill"), "Unexpected car repair"),
-        JournalEntry("4", "Jun 7, 9:00 AM", 5, "😫 Stressed", listOf("Rent"), null),
-        JournalEntry("5", "Jun 6, 8:30 AM", 3, "🙂 Hopeful", emptyList(), "Got paid today")
-    )
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Mood Journal") },
                 actions = {
-                    IconButton(onClick = { /* Add new entry */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Entry"
-                        )
+                    IconButton(onClick = { }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Entry")
                     }
                 }
             )
@@ -60,24 +46,28 @@ fun JournalScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Summary card
             item {
                 SummaryCard(
-                    totalEntries = 5,
-                    averageStress = 5.2,
-                    commonMood = "Neutral"
+                    totalEntries = uiState.entries.size,
+                    averageStress = if (uiState.entries.isNotEmpty()) {
+                        uiState.entries.map { it.score }.average()
+                    } else 0.0,
+                    commonMood = uiState.entries
+                        .mapNotNull { it.mood?.displayName }
+                        .groupingBy { it }
+                        .eachCount()
+                        .maxByOrNull { it.value }
+                        ?.key ?: "None"
                 )
             }
 
-            // Entries
-            items(sampleEntries) { entry ->
+            items(uiState.entries) { entry ->
                 JournalEntryCard(
                     entry = entry,
                     onClick = { onEntryClick(entry.id) }
                 )
             }
 
-            // Bottom spacing
             item {
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -104,30 +94,16 @@ fun SummaryCard(
                 .padding(20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            SummaryItem(
-                value = "$totalEntries",
-                label = "Entries"
-            )
-            SummaryItem(
-                value = String.format("%.1f", averageStress),
-                label = "Avg Stress"
-            )
-            SummaryItem(
-                value = commonMood,
-                label = "Top Mood"
-            )
+            SummaryItem(value = "$totalEntries", label = "Entries")
+            SummaryItem(value = String.format("%.1f", averageStress), label = "Avg Stress")
+            SummaryItem(value = commonMood, label = "Top Mood")
         }
     }
 }
 
 @Composable
-fun SummaryItem(
-    value: String,
-    label: String
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+fun SummaryItem(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
             style = MaterialTheme.typography.headlineMedium,
@@ -144,9 +120,11 @@ fun SummaryItem(
 
 @Composable
 fun JournalEntryCard(
-    entry: JournalEntry,
+    entry: StressEntry,
     onClick: () -> Unit
 ) {
+    val dateFormat = remember { SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -164,20 +142,20 @@ fun JournalEntryCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = entry.date,
+                    text = dateFormat.format(Date(entry.timestamp)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = getStressColor(entry.stressScore).copy(alpha = 0.1f)
+                    color = getStressColor(entry.score).copy(alpha = 0.1f)
                 ) {
                     Text(
-                        text = "${entry.stressScore}/10",
+                        text = "${entry.score}/10",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelMedium,
-                        color = getStressColor(entry.stressScore)
+                        color = getStressColor(entry.score)
                     )
                 }
             }
@@ -186,16 +164,14 @@ fun JournalEntryCard(
 
             if (entry.mood != null) {
                 Text(
-                    text = entry.mood,
+                    text = "${entry.mood.emoji} ${entry.mood.displayName}",
                     style = MaterialTheme.typography.titleMedium
                 )
             }
 
             if (entry.triggers.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     entry.triggers.forEach { trigger ->
                         SuggestionChip(
                             onClick = { },

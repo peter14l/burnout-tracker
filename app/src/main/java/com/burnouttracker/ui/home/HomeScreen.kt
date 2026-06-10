@@ -1,13 +1,10 @@
 package com.burnouttracker.ui.home
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,12 +15,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.burnouttracker.ui.theme.BurnoutColors
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.burnouttracker.ui.theme.getStressColor
 import com.burnouttracker.ui.theme.getStressLabel
 
@@ -32,26 +27,23 @@ import com.burnouttracker.ui.theme.getStressLabel
 fun HomeScreen(
     onCheckIn: () -> Unit,
     onViewInsights: () -> Unit,
-    onViewRecovery: () -> Unit
+    onViewRecovery: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
-    var stressScore by remember { mutableIntStateOf(6) }
-    var streakDays by remember { mutableIntStateOf(4) }
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Good morning, Stella",
+                        text = if (uiState.hasCheckedInToday) "Welcome back" else "Good morning",
                         style = MaterialTheme.typography.headlineMedium
                     )
                 },
                 actions = {
                     IconButton(onClick = { /* Settings */ }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = "Settings"
-                        )
+                        Icon(Icons.Outlined.Settings, contentDescription = "Settings")
                     }
                 }
             )
@@ -64,37 +56,33 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Burnout Score Card
             item {
                 BurnoutScoreCard(
-                    score = stressScore,
+                    score = uiState.latestStress,
                     onCheckIn = onCheckIn
                 )
             }
 
-            // Quick Check-in
             item {
                 QuickCheckInCard(
+                    hasCheckedInToday = uiState.hasCheckedInToday,
                     onCheckIn = onCheckIn
                 )
             }
 
-            // Today's Micro-Action
             item {
                 MicroActionCard(
                     title = "3-Minute Breathing Reset",
                     description = "Take a moment to calm your mind",
                     icon = Icons.Default.SelfImprovement,
-                    onStart = { /* Start breathing exercise */ }
+                    onStart = { }
                 )
             }
 
-            // Streak Card
             item {
-                StreakCard(days = streakDays)
+                StreakCard(days = uiState.streakDays)
             }
 
-            // Quick Actions
             item {
                 QuickActionsSection(
                     onViewInsights = onViewInsights,
@@ -195,6 +183,7 @@ fun BurnoutScoreCard(
 
 @Composable
 fun QuickCheckInCard(
+    hasCheckedInToday: Boolean,
     onCheckIn: () -> Unit
 ) {
     Card(
@@ -215,7 +204,7 @@ fun QuickCheckInCard(
                 .padding(20.dp)
         ) {
             Text(
-                text = "Quick Check-in",
+                text = if (hasCheckedInToday) "Check-in Complete ✓" else "Quick Check-in",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -223,7 +212,7 @@ fun QuickCheckInCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "How's your financial stress today?",
+                text = if (hasCheckedInToday) "You've checked in today. Come back tomorrow!" else "How's your financial stress today?",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

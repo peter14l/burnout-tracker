@@ -11,6 +11,7 @@ import com.burnouttracker.ui.auth.LoginScreen
 import com.burnouttracker.ui.auth.SignUpScreen
 import com.burnouttracker.ui.home.HomeScreen
 import com.burnouttracker.ui.checkin.CheckInScreen
+import com.burnouttracker.ui.expense.ExpenseScreen
 import com.burnouttracker.ui.journal.JournalScreen
 import com.burnouttracker.ui.insights.InsightsScreen
 import com.burnouttracker.ui.profile.ProfileScreen
@@ -107,6 +108,14 @@ fun NavGraph(
         // Check-in
         composable(Screen.CheckIn.route) {
             CheckInScreen(
+                onComplete = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // Expense
+        composable(Screen.Expense.route) {
+            ExpenseScreen(
                 onComplete = { navController.popBackStack() },
                 onBack = { navController.popBackStack() }
             )
