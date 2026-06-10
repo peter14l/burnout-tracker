@@ -58,7 +58,7 @@ jobs:
         EOF
         fi
     
-    - name: Build release APK (debug signing)
+    - name: Build release APK
       run: ./gradlew assembleRelease
     
     - name: Upload release APK
