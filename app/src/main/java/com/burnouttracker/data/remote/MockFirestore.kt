@@ -1,14 +1,11 @@
 package com.burnouttracker.data.remote
 
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Mock Firestore for development without google-services.json
+ * Mock Firestore for development without real Firebase
  */
 @Singleton
 class MockFirestore @Inject constructor() {
@@ -23,16 +20,13 @@ class MockFirestore @Inject constructor() {
         }
     }
 
-    /**
-     * Save document to collection
-     */
     suspend fun saveDocument(
         collection: String,
         documentId: String,
         data: Map<String, Any>
     ): Result<Unit> {
         return if (isMockMode()) {
-            mockData.getOrPut(collection) { mutableMapOf() }[documentId] = data
+            mockData.getOrPut(collection) { mutableMapOf() }[documentId] = data.toMutableMap()
             Result.success(Unit)
         } else {
             try {
@@ -48,15 +42,14 @@ class MockFirestore @Inject constructor() {
         }
     }
 
-    /**
-     * Get document from collection
-     */
     suspend fun getDocument(
         collection: String,
         documentId: String
     ): Result<Map<String, Any>?> {
         return if (isMockMode()) {
-            Result.success(mockData[collection]?.get(documentId))
+            val doc = mockData[collection]?.get(documentId)
+            @Suppress("UNCHECKED_CAST")
+            Result.success(doc as? Map<String, Any>)
         } else {
             try {
                 val doc = FirebaseFirestore.getInstance()
@@ -71,9 +64,6 @@ class MockFirestore @Inject constructor() {
         }
     }
 
-    /**
-     * Delete document from collection
-     */
     suspend fun deleteDocument(
         collection: String,
         documentId: String
@@ -95,14 +85,13 @@ class MockFirestore @Inject constructor() {
         }
     }
 
-    /**
-     * Get all documents from collection
-     */
     suspend fun getCollection(
         collection: String
     ): Result<List<Map<String, Any>>> {
         return if (isMockMode()) {
-            Result.success(mockData[collection]?.values?.toList() ?: emptyList())
+            @Suppress("UNCHECKED_CAST")
+            val docs = mockData[collection]?.values?.mapNotNull { it as? Map<String, Any> } ?: emptyList()
+            Result.success(docs)
         } else {
             try {
                 val docs = FirebaseFirestore.getInstance()
@@ -115,4 +104,11 @@ class MockFirestore @Inject constructor() {
             }
         }
     }
+}
+
+/**
+ * Extension function to await Task result
+ */
+suspend fun <T> com.google.android.gms.tasks.Task<T>.await(): T {
+    return com.google.android.gms.tasks.Tasks.await(this)
 }

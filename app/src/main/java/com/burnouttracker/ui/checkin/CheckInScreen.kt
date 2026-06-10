@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.burnouttracker.ui.theme.BurnoutColors
 import com.burnouttracker.ui.theme.getStressColor
+import com.burnouttracker.ui.theme.getStressLabel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
