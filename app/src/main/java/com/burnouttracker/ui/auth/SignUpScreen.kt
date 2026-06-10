@@ -19,7 +19,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.burnouttracker.data.remote.MockFirebaseAuth
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +33,6 @@ fun SignUpScreen(
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -163,16 +161,14 @@ fun SignUpScreen(
             // Sign up button
             Button(
                 onClick = {
-                    scope.launch {
-                        isLoading = true
-                        error = null
-                        val result = mockFirebaseAuth.signUpWithEmail(email, password)
-                        isLoading = false
-                        result.fold(
-                            onSuccess = { onSignUpSuccess() },
-                            onFailure = { error = it.message }
-                        )
-                    }
+                    isLoading = true
+                    error = null
+                    val result = mockFirebaseAuth.signUpWithEmail(email, password)
+                    isLoading = false
+                    result.fold(
+                        onSuccess = { onSignUpSuccess() },
+                        onFailure = { error = it.message }
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
