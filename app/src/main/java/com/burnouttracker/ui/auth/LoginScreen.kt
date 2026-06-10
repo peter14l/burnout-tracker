@@ -20,7 +20,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.burnouttracker.data.remote.MockFirebaseAuth
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +33,6 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -147,16 +145,14 @@ fun LoginScreen(
             // Login button
             Button(
                 onClick = {
-                    scope.launch {
-                        isLoading = true
-                        error = null
-                        val result = mockFirebaseAuth.signInWithEmail(email, password)
-                        isLoading = false
-                        result.fold(
-                            onSuccess = { onLoginSuccess() },
-                            onFailure = { error = it.message }
-                        )
-                    }
+                    isLoading = true
+                    error = null
+                    val result = mockFirebaseAuth.signInWithEmail(email, password)
+                    isLoading = false
+                    result.fold(
+                        onSuccess = { onLoginSuccess() },
+                        onFailure = { error = it.message }
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -193,16 +189,14 @@ fun LoginScreen(
             // Quick mock login
             OutlinedButton(
                 onClick = {
-                    scope.launch {
-                        isLoading = true
-                        error = null
-                        val result = mockFirebaseAuth.signInWithEmail("mock@mock.com", "mock")
-                        isLoading = false
-                        result.fold(
-                            onSuccess = { onLoginSuccess() },
-                            onFailure = { error = it.message }
-                        )
-                    }
+                    isLoading = true
+                    error = null
+                    val result = mockFirebaseAuth.signInWithEmail("mock@mock.com", "mock")
+                    isLoading = false
+                    result.fold(
+                        onSuccess = { onLoginSuccess() },
+                        onFailure = { error = it.message }
+                    )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp)

@@ -1,15 +1,14 @@
 package com.burnouttracker.data.remote
 
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Mock Firebase Auth for development without real Firebase
+ * Mock Firebase Auth for development without real Firebase.
+ * All auth is local until a real Firebase project is configured.
  */
 @Singleton
 class MockFirebaseAuth @Inject constructor() {
@@ -19,75 +18,35 @@ class MockFirebaseAuth @Inject constructor() {
     private val _isSignedIn = MutableStateFlow(false)
     val isSignedIn: StateFlow<Boolean> = _isSignedIn.asStateFlow()
 
-    fun isMockMode(): Boolean {
-        return try {
-            FirebaseAuth.getInstance()
-            false
-        } catch (e: Exception) {
-            true
-        }
-    }
-
-    suspend fun signInWithEmail(email: String, password: String): Result<Boolean> {
-        return if (isMockMode()) {
-            if (email.contains("@") && password.length >= 3) {
-                _isSignedIn.value = true
-                _currentUserEmail.value = email
-                Result.success(true)
-            } else {
-                Result.failure(Exception("Invalid email or password"))
-            }
-        } else {
-            try {
-                val auth = FirebaseAuth.getInstance()
-                val result = auth.signInWithEmailAndPassword(email, password).await()
-                _currentUserEmail.value = result.user?.email
-                _isSignedIn.value = true
-                Result.success(true)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
-
-    suspend fun signUpWithEmail(email: String, password: String): Result<Boolean> {
-        return if (isMockMode()) {
-            if (email.contains("@") && password.length >= 6) {
-                _isSignedIn.value = true
-                _currentUserEmail.value = email
-                Result.success(true)
-            } else {
-                Result.failure(Exception("Invalid email or password (min 6 chars)"))
-            }
-        } else {
-            try {
-                val auth = FirebaseAuth.getInstance()
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                _currentUserEmail.value = result.user?.email
-                _isSignedIn.value = true
-                Result.success(true)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
-
-    suspend fun signInWithGoogle(): Result<Boolean> {
-        return if (isMockMode()) {
+    fun signInWithEmail(email: String, password: String): Result<Boolean> {
+        return if (email.contains("@") && password.length >= 3) {
             _isSignedIn.value = true
-            _currentUserEmail.value = "mock@google.com"
+            _currentUserEmail.value = email
             Result.success(true)
         } else {
-            Result.failure(Exception("Use Google Sign-In button"))
+            Result.failure(Exception("Invalid email or password"))
         }
+    }
+
+    fun signUpWithEmail(email: String, password: String): Result<Boolean> {
+        return if (email.contains("@") && password.length >= 6) {
+            _isSignedIn.value = true
+            _currentUserEmail.value = email
+            Result.success(true)
+        } else {
+            Result.failure(Exception("Invalid email or password (min 6 chars)"))
+        }
+    }
+
+    fun signInWithGoogle(): Result<Boolean> {
+        _isSignedIn.value = true
+        _currentUserEmail.value = "mock@google.com"
+        return Result.success(true)
     }
 
     fun signOut() {
         _currentUserEmail.value = null
         _isSignedIn.value = false
-        if (!isMockMode()) {
-            FirebaseAuth.getInstance().signOut()
-        }
     }
 
     fun getCurrentUserEmail(): String? {
@@ -99,5 +58,3 @@ class MockFirebaseAuth @Inject constructor() {
         return "mock_${email.hashCode().toUInt()}"
     }
 }
-
-
