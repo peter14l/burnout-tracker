@@ -1,7 +1,7 @@
 package com.burnouttracker.ui.home
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,12 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.burnouttracker.ui.theme.getStressColor
-import com.burnouttracker.ui.theme.getStressLabel
+import com.burnouttracker.ui.components.StressAvatar
+import com.burnouttracker.ui.components.AvatarSize
+import com.burnouttracker.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,14 +40,18 @@ fun HomeScreen(
                 title = {
                     Text(
                         text = if (uiState.hasCheckedInToday) "Welcome back" else "Good morning",
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Light
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* Settings */ }) {
+                    IconButton(onClick = { }) {
                         Icon(Icons.Outlined.Settings, contentDescription = "Settings")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
         }
     ) { paddingValues ->
@@ -53,341 +59,344 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // Hero: Avatar + Score
             item {
-                BurnoutScoreCard(
-                    score = uiState.latestStress,
+                AvatarHeroCard(
+                    stressLevel = uiState.latestStress,
+                    hasCheckedIn = uiState.hasCheckedInToday,
                     onCheckIn = onCheckIn
                 )
             }
 
+            // Financial Wellness Score
             item {
-                QuickCheckInCard(
-                    hasCheckedInToday = uiState.hasCheckedInToday,
-                    onCheckIn = onCheckIn
+                WellnessScoreCard(
+                    stressScore = uiState.latestStress,
+                    streakDays = uiState.streakDays
                 )
             }
 
+            // Spending ↔ Stress Correlation
             item {
-                MicroActionCard(
-                    title = "3-Minute Breathing Reset",
-                    description = "Take a moment to calm your mind",
-                    icon = Icons.Default.SelfImprovement,
-                    onStart = { }
+                CorrelationCard(
+                    stressLevel = uiState.latestStress
                 )
             }
 
-            item {
-                StreakCard(days = uiState.streakDays)
+            // Quick Check-in CTA
+            if (!uiState.hasCheckedInToday) {
+                item {
+                    CheckInCTA(onCheckIn = onCheckIn)
+                }
             }
 
+            // Quick Actions
             item {
                 QuickActionsSection(
                     onViewInsights = onViewInsights,
                     onViewRecovery = onViewRecovery
                 )
             }
+
+            // Bottom spacing
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
+            }
         }
     }
 }
 
 @Composable
-fun BurnoutScoreCard(
-    score: Int,
+fun AvatarHeroCard(
+    stressLevel: Int,
+    hasCheckedIn: Boolean,
     onCheckIn: () -> Unit
 ) {
-    val animatedScore by animateFloatAsState(
-        targetValue = score / 10f,
-        animationSpec = tween(durationMillis = 1000),
-        label = "score_animation"
-    )
-
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckIn() },
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = Color.Transparent
         )
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Your Burnout Score",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Box(
-                contentAlignment = Alignment.Center
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Circular progress indicator
-                CircularProgressIndicator(
-                    progress = { animatedScore },
-                    modifier = Modifier.size(120.dp),
-                    color = getStressColor(score),
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    strokeWidth = 12.dp
+                StressAvatar(
+                    stressLevel = stressLevel,
+                    size = AvatarSize.XLarge
                 )
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = if (stressLevel == 0) "How are you feeling?" else getStressMessage(stressLevel),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Normal
+                )
+
+                if (stressLevel > 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "$score",
-                        style = MaterialTheme.typography.displayLarge,
-                        color = getStressColor(score),
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "/ 10",
-                        style = MaterialTheme.typography.bodyLarge,
+                        text = "Stress level: $stressLevel/10",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = getStressColor(score).copy(alpha = 0.1f)
-            ) {
-                Text(
-                    text = getStressLabel(score),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = getStressColor(score)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Trending: ↘ Improving",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
 
+fun getStressMessage(level: Int): String {
+    return when {
+        level <= 2 -> "You're doing great today!"
+        level <= 4 -> "Things are looking good"
+        level <= 6 -> "Taking it one step at a time"
+        level <= 8 -> "Let's work through this together"
+        else -> "We're here for you"
+    }
+}
+
 @Composable
-fun QuickCheckInCard(
-    hasCheckedInToday: Boolean,
-    onCheckIn: () -> Unit
+fun WellnessScoreCard(
+    stressScore: Int,
+    streakDays: Int
 ) {
+    // Simple wellness score: inverse of stress + streak bonus
+    val wellnessScore = ((10 - stressScore) * 10 + (streakDays * 5)).coerceIn(0, 100)
+
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckIn() },
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            Text(
-                text = if (hasCheckedInToday) "Check-in Complete ✓" else "Quick Check-in",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Financial Wellness",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "$wellnessScore%",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = getWellnessColor(wellnessScore)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LinearProgressIndicator(
+                progress = { wellnessScore / 100f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                color = getWellnessColor(wellnessScore),
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = if (hasCheckedInToday) "You've checked in today. Come back tomorrow!" else "How's your financial stress today?",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Stress level selector
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                (1..10).forEach { level ->
-                    Surface(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .clickable { /* Update score */ },
-                        shape = CircleShape,
-                        color = if (level <= 6) {
-                            getStressColor(level)
-                        } else {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        }
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "$level",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (level <= 6) {
-                                    Color.White
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                }
-                            )
-                        }
-                    }
-                }
+                StatItem(label = "Streak", value = "${streakDays}d", icon = Icons.Default.LocalFireDepartment)
+                StatItem(label = "Stress", value = "$stressScore/10", icon = Icons.Default.MonitorHeart)
             }
         }
     }
 }
 
 @Composable
-fun MicroActionCard(
-    title: String,
-    description: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onStart: () -> Unit
-) {
+fun StatItem(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Column {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+fun getWellnessColor(score: Int): Color {
+    return when {
+        score >= 70 -> StressLow
+        score >= 40 -> StressModerate
+        else -> StressHigh
+    }
+}
+
+@Composable
+fun CorrelationCard(stressLevel: Int) {
+    val spendingLevel = when {
+        stressLevel <= 3 -> "Low"
+        stressLevel <= 6 -> "Moderate"
+        else -> "High"
+    }
+
+    val correlationMessage = when {
+        stressLevel <= 3 -> "Your spending stays calm when you're calm"
+        stressLevel <= 6 -> "Moderate stress may trigger impulse buys"
+        else -> "High stress often leads to comfort spending"
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.TrendingUp,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Spending Pattern",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Stress",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "$stressLevel/10",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = getStressColor(stressLevel)
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Spending Tendency",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = spendingLevel,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = when (spendingLevel) {
+                            "Low" -> SpendingGreen
+                            "Moderate" -> SpendingYellow
+                            else -> SpendingRed
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = correlationMessage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun CheckInCTA(onCheckIn: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckIn() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.secondary
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.padding(12.dp),
-                    tint = MaterialTheme.colorScheme.onSecondary
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Today's Micro-Action",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = title,
+                    text = "Daily Check-in",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
-                    text = description,
+                    text = "Track how you're feeling today",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
             }
-
-            FilledTonalButton(
-                onClick = onStart
-            ) {
-                Text("Start")
-            }
-        }
-    }
-}
-
-@Composable
-fun StreakCard(days: Int) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Text(
-                text = "This Week",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Week days
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                val daysOfWeek = listOf("M", "T", "W", "T", "F", "S", "S")
-                daysOfWeek.forEachIndexed { index, day ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = if (index < days) {
-                                MaterialTheme.colorScheme.tertiary
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            }
-                        ) {
-                            Box(
-                                modifier = Modifier.size(36.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (index < days) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Completed",
-                                        tint = MaterialTheme.colorScheme.onTertiary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                } else {
-                                    Text(
-                                        text = day,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "$days-day streak! 🔥",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+            Icon(
+                imageVector = Icons.Default.ArrowForward,
+                contentDescription = "Go to check-in",
+                tint = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
@@ -406,12 +415,14 @@ fun QuickActionsSection(
             modifier = Modifier.weight(1f),
             icon = Icons.Outlined.Insights,
             title = "Insights",
+            subtitle = "Trends & patterns",
             onClick = onViewInsights
         )
         ActionCard(
             modifier = Modifier.weight(1f),
             icon = Icons.Outlined.SelfImprovement,
             title = "Recovery",
+            subtitle = "Wellness plans",
             onClick = onViewRecovery
         )
     }
@@ -422,14 +433,16 @@ fun ActionCard(
     modifier: Modifier = Modifier,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
+    subtitle: String,
     onClick: () -> Unit
 ) {
     Card(
         modifier = modifier.clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier
@@ -437,16 +450,27 @@ fun ActionCard(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

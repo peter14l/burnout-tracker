@@ -2,82 +2,61 @@ package com.burnouttracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary - Calming purple/lavender
-val Purple80 = Color(0xFFB8A9FF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Warm & Supportive Palette with Minimalist Blend
+// Primary - Warm peach/coral (supportive, not alarming)
+val WarmPrimary = Color(0xFFFF8A65)       // Soft coral
+val WarmPrimaryLight = Color(0xFFFFCCBC)  // Light peach
+val WarmPrimaryDark = Color(0xFFE64A19)   // Deep coral
 
-val Purple40 = Color(0xFF7C5CFC)
-val PurpleGrey40 = Color(0xFF625B71)
-val Pink40 = Color(0xFF7D5260)
+// Secondary - Calming sage green (growth, recovery)
+val WarmSecondary = Color(0xFF81C784)     // Sage green
+val WarmSecondaryLight = Color(0xFFC8E6C9)
+val WarmSecondaryDark = Color(0xFF388E3C)
 
-// Burnout Tracker Custom Colors
-object BurnoutColors {
-    // Primary - Calming purple/lavender
-    val Primary = Color(0xFF7C5CFC)
-    val PrimaryLight = Color(0xFFB8A9FF)
-    val PrimaryDark = Color(0xFF5A3FD9)
-    val PrimaryContainer = Color(0xFFE8DEFF)
-    val OnPrimaryContainer = Color(0xFF21005E)
+// Tertiary - Soft lavender (calm, mindfulness)
+val WarmTertiary = Color(0xFFCE93D8)      // Soft purple
+val WarmTertiaryLight = Color(0xFFF3E5F5)
 
-    // Secondary - Warm coral (for positive actions)
-    val Secondary = Color(0xFFFF6B6B)
-    val SecondaryLight = Color(0xFFFF9E9E)
-    val SecondaryDark = Color(0xFFD94444)
-    val SecondaryContainer = Color(0xFFFFDAD6)
-    val OnSecondaryContainer = Color(0xFF410001)
+// Background - Warm off-white (minimalist, clean)
+val WarmBackground = Color(0xFFFEFCF9)    // Warm white
+val WarmSurface = Color(0xFFFFFFFF)
+val WarmSurfaceVariant = Color(0xFFF8F5F2) // Warm gray
 
-    // Tertiary - Teal (for calm states)
-    val Tertiary = Color(0xFF00BCD4)
-    val TertiaryContainer = Color(0xFFB2EBF2)
+// Stress Colors (warmer, less clinical)
+val StressLow = Color(0xFF81C784)         // Sage green
+val StressModerate = Color(0xFFFFD54F)    // Warm yellow
+val StressHigh = Color(0xFFFFAB91)        // Soft coral
+val StressCritical = Color(0xFFEF9A9A)    // Muted red
 
-    // Background - Soft white/cream
-    val Background = Color(0xFFFAFAFA)
-    val Surface = Color(0xFFFFFFFF)
-    val SurfaceVariant = Color(0xFFF5F5F5)
+// Text Colors (softer, more readable)
+val TextPrimary = Color(0xFF2D2D2D)       // Soft black
+val TextSecondary = Color(0xFF757575)     // Warm gray
+val TextTertiary = Color(0xFFBDBDBD)      // Light gray
+val TextOnPrimary = Color(0xFFFFFFFF)
 
-    // Stress Colors (for visualization)
-    val StressLow = Color(0xFF4CAF50)       // Green
-    val StressModerate = Color(0xFFFFC107)   // Yellow
-    val StressHigh = Color(0xFFFF9800)       // Orange
-    val StressCritical = Color(0xFFF44336)   // Red
+// Accent Colors for financial data
+val SpendingGreen = Color(0xFF66BB6A)     // Under budget
+val SpendingYellow = Color(0xFFFFCA28)    // Near limit
+val SpendingRed = Color(0xFFEF5350)       // Over budget
 
-    // Mood Colors
-    val MoodAnxious = Color(0xFF9C27B0)
-    val MoodStressed = Color(0xFFFF5722)
-    val MoodOverwhelmed = Color(0xFF795548)
-    val MoodNeutral = Color(0xFF607D8B)
-    val MoodCalm = Color(0xFF00BCD4)
-    val MoodHopeful = Color(0xFF8BC34A)
-    val MoodRelieved = Color(0xFF3F51B5)
-
-    // Status Colors
-    val Success = Color(0xFF4CAF50)
-    val Warning = Color(0xFFFF9800)
-    val Error = Color(0xFFF44336)
-    val Info = Color(0xFF2196F3)
-
-    // Text Colors
-    val TextPrimary = Color(0xFF1A1A1A)
-    val TextSecondary = Color(0xFF666666)
-    val TextTertiary = Color(0xFF999999)
-    val TextOnPrimary = Color(0xFFFFFFFF)
-}
+// Gradient colors for cards
+val GradientStart = Color(0xFFFFF3E0)     // Warm peach
+val GradientEnd = Color(0xFFE8F5E9)       // Soft green
 
 fun getStressColor(score: Int): Color {
     return when {
-        score <= 3 -> BurnoutColors.StressLow
-        score <= 5 -> BurnoutColors.StressModerate
-        score <= 7 -> BurnoutColors.StressHigh
-        else -> BurnoutColors.StressCritical
+        score <= 3 -> StressLow
+        score <= 5 -> StressModerate
+        score <= 7 -> StressHigh
+        else -> StressCritical
     }
 }
 
 fun getStressLabel(score: Int): String {
     return when {
-        score <= 3 -> "Low"
+        score <= 3 -> "Calm"
         score <= 5 -> "Moderate"
-        score <= 7 -> "High"
-        else -> "Critical"
+        score <= 7 -> "Elevated"
+        else -> "High"
     }
 }
