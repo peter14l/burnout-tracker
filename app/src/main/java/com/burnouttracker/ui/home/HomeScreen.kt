@@ -82,7 +82,10 @@ fun HomeScreen(
             // Spending ↔ Stress Correlation
             item {
                 CorrelationCard(
-                    stressLevel = uiState.latestStress
+                    stressLevel = uiState.latestStress,
+                    totalSpending7Days = uiState.totalSpending7Days,
+                    spendingTrend = uiState.spendingTrend,
+                    recentExpenses = uiState.recentExpenses
                 )
             }
 
@@ -273,7 +276,12 @@ fun getWellnessColor(score: Int): Color {
 }
 
 @Composable
-fun CorrelationCard(stressLevel: Int) {
+fun CorrelationCard(
+    stressLevel: Int,
+    totalSpending7Days: Double,
+    spendingTrend: Double,
+    recentExpenses: List<com.burnouttracker.domain.model.Expense>
+) {
     val spendingLevel = when {
         stressLevel <= 3 -> "Low"
         stressLevel <= 6 -> "Moderate"
@@ -281,9 +289,16 @@ fun CorrelationCard(stressLevel: Int) {
     }
 
     val correlationMessage = when {
-        stressLevel <= 3 -> "Your spending stays calm when you're calm"
+        totalSpending7Days == 0.0 -> "Start logging expenses to see your spending pattern"
+        stressLevel <= 3 && totalSpending7Days < 500 -> "You're managing stress and spending well"
         stressLevel <= 6 -> "Moderate stress may trigger impulse buys"
         else -> "High stress often leads to comfort spending"
+    }
+
+    val trendText = when {
+        spendingTrend > 5 -> "↑ ${String.format("%.0f", spendingTrend)}% vs last week"
+        spendingTrend < -5 -> "↓ ${String.format("%.0f", kotlin.math.abs(spendingTrend))}% vs last week"
+        else -> "Stable this week"
     }
 
     Card(
@@ -334,24 +349,36 @@ fun CorrelationCard(stressLevel: Int) {
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "Spending Tendency",
+                        text = "7-Day Spending",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = spendingLevel,
+                        text = "$${String.format("%.0f", totalSpending7Days)}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = when (spendingLevel) {
-                            "Low" -> SpendingGreen
-                            "Moderate" -> SpendingYellow
-                            else -> SpendingRed
+                        color = when {
+                            totalSpending7Days > 1000 -> SpendingRed
+                            totalSpending7Days > 500 -> SpendingYellow
+                            else -> SpendingGreen
                         }
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = trendText,
+                style = MaterialTheme.typography.labelSmall,
+                color = when {
+                    spendingTrend > 5 -> SpendingRed
+                    spendingTrend < -5 -> SpendingGreen
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = correlationMessage,
