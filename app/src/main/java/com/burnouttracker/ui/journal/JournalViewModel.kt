@@ -33,7 +33,7 @@ class JournalViewModel @Inject constructor(
 
     private fun loadEntries() {
         viewModelScope.launch {
-            val userId = mockFirebaseAuth.getCurrentUser()?.uid ?: "mock_user"
+            val userId = mockFirebaseAuth.getUid()
 
             stressRepository.getStressEntries(userId).collect { entries ->
                 _uiState.value = _uiState.value.copy(

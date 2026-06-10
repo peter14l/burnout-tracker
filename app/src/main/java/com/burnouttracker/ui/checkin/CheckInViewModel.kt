@@ -58,7 +58,7 @@ class CheckInViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = state.copy(isSaving = true, error = null)
 
-            val userId = mockFirebaseAuth.getCurrentUser()?.uid ?: "mock_user"
+            val userId = mockFirebaseAuth.getUid()
             val mood = state.selectedMood?.let { moodName ->
                 Mood.entries.find { it.displayName == moodName }
             }

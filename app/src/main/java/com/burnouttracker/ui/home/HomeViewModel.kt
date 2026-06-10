@@ -37,7 +37,7 @@ class HomeViewModel @Inject constructor(
 
     private fun loadHomeData() {
         viewModelScope.launch {
-            val userId = mockFirebaseAuth.getCurrentUser()?.uid ?: "mock_user"
+            val userId = mockFirebaseAuth.getUid()
 
             // Get latest stress entry
             stressRepository.getLatestStressEntry(userId).collect { entry ->
@@ -53,7 +53,7 @@ class HomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val userId = mockFirebaseAuth.getCurrentUser()?.uid ?: "mock_user"
+            val userId = mockFirebaseAuth.getUid()
 
             // Calculate streak
             val entries = stressRepository.getStressEntries(userId).first()

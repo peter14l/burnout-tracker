@@ -63,7 +63,7 @@ class ExpenseViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = state.copy(isSaving = true, error = null)
 
-            val userId = mockFirebaseAuth.getCurrentUser()?.uid ?: "mock_user"
+            val userId = mockFirebaseAuth.getUid()
 
             val result = recordExpenseUseCase(
                 userId = userId,
