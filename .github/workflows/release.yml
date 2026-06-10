@@ -29,6 +29,18 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x gradlew
     
+    - name: Generate release keystore
+      run: |
+        keytool -genkeypair \
+          -alias burnouttracker \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -keystore app/release-keystore.jks \
+          -storepass burnouttracker \
+          -keypass burnouttracker \
+          -dname "CN=Burnout Tracker, OU=Dev, O=BurnoutTracker, L=Unknown, ST=Unknown, C=US"
+    
     - name: Build release APK
       run: ./gradlew assembleRelease
     
