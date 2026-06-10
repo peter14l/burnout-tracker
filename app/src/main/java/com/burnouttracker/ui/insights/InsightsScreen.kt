@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.burnouttracker.ui.theme.BurnoutColors
+import com.burnouttracker.ui.theme.StressModerate
+import com.burnouttracker.ui.theme.StressLow
+import com.burnouttracker.ui.theme.StressHigh
 import com.burnouttracker.ui.theme.getStressColor
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +68,7 @@ fun InsightsScreen(
             item {
                 BurnoutRiskCard(
                     riskLevel = "Moderate",
-                    riskColor = BurnoutColors.StressModerate,
+                    riskColor = StressModerate,
                     message = "Consider using some recovery tools this week."
                 )
             }
@@ -221,7 +223,7 @@ fun ChangeIndicator(
     change: Double
 ) {
     val isImproving = change < 0
-    val color = if (isImproving) BurnoutColors.StressLow else BurnoutColors.StressHigh
+    val color = if (isImproving) StressLow else StressHigh
     val icon = if (isImproving) Icons.Default.TrendingDown else Icons.Default.TrendingUp
 
     Row(

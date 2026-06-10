@@ -20,7 +20,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.burnouttracker.ui.theme.BurnoutColors
+import com.burnouttracker.ui.theme.WarmPrimary
+import com.burnouttracker.ui.theme.WarmPrimaryDark
+import com.burnouttracker.ui.theme.WarmSecondary
+import com.burnouttracker.ui.theme.WarmSecondaryDark
+import com.burnouttracker.ui.theme.WarmTertiary
+import com.burnouttracker.ui.theme.StressLow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -36,25 +41,25 @@ fun OnboardingScreen(
             title = "Welcome to Burnout Tracker",
             description = "The first app that tracks your financial burnout, not just your spending.",
             icon = Icons.Default.WavingHand,
-            gradient = listOf(BurnoutColors.Primary, BurnoutColors.PrimaryDark)
+            gradient = listOf(WarmPrimary, WarmPrimaryDark)
         ),
         OnboardingPage(
             title = "Track Your Stress",
             description = "Daily check-ins help you understand how money affects your mental health.",
             icon = Icons.Default.Psychology,
-            gradient = listOf(BurnoutColors.Tertiary, Color(0xFF0097A7))
+            gradient = listOf(WarmTertiary, Color(0xFF0097A7))
         ),
         OnboardingPage(
             title = "Discover Patterns",
             description = "See the correlation between your spending and your mood.",
             icon = Icons.Default.Insights,
-            gradient = listOf(BurnoutColors.Secondary, BurnoutColors.SecondaryDark)
+            gradient = listOf(WarmSecondary, WarmSecondaryDark)
         ),
         OnboardingPage(
             title = "Recover & Thrive",
             description = "Personalized recovery plans to help you build financial resilience.",
             icon = Icons.Default.SelfImprovement,
-            gradient = listOf(BurnoutColors.StressLow, Color(0xFF388E3C))
+            gradient = listOf(StressLow, Color(0xFF388E3C))
         )
     )
 

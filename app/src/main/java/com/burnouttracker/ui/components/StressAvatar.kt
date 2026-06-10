@@ -19,6 +19,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.burnouttracker.ui.theme.*
+import com.burnouttracker.ui.theme.StressLow
+import com.burnouttracker.ui.theme.StressModerate
+import com.burnouttracker.ui.theme.StressHigh
+import com.burnouttracker.ui.theme.StressCritical
 
 /**
  * 3D-style avatar that changes expression based on stress level
@@ -43,14 +47,16 @@ fun StressAvatar(
 
     val avatarData = getAvatarForStress(stressLevel)
 
+    val sizeDp = size.dp
+
     Box(
-        modifier = modifier.size(size.dp),
+        modifier = modifier.size(sizeDp),
         contentAlignment = Alignment.Center
     ) {
         // Outer glow
         Box(
             modifier = Modifier
-                .size(size.dp * 0.95f)
+                .size(sizeDp * 0.95f)
                 .clip(CircleShape)
                 .background(
                     Brush.radialGradient(
@@ -65,7 +71,7 @@ fun StressAvatar(
         // Avatar body (3D effect with shadows)
         Box(
             modifier = Modifier
-                .size(size.dp * 0.85f * breatheScale)
+                .size(sizeDp * 0.85f * breatheScale)
                 .shadow(
                     elevation = 12.dp,
                     shape = CircleShape,
@@ -95,7 +101,7 @@ fun StressAvatar(
                 // Face emoji
                 Text(
                     text = avatarData.emoji,
-                    fontSize = (size.dp.value * 0.4f).sp,
+                    fontSize = (sizeDp.value * 0.4f).sp,
                     textAlign = TextAlign.Center
                 )
 

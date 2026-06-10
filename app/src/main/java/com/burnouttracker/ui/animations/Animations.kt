@@ -2,7 +2,15 @@ package com.burnouttracker.ui.animations
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 
 /**
  * Smooth fade-in animation for content
@@ -53,32 +61,6 @@ fun ScaleInAnimation(
 }
 
 /**
- * Pulse animation for attention-grabbing elements
- */
-@Composable
-fun PulseAnimation(
-    enabled: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse_scale"
-    )
-
-    Box(
-        modifier = if (enabled) Modifier.graphicsLayer(scaleX = scale, scaleY = scale) else Modifier
-    ) {
-        content()
-    }
-}
-
-/**
  * Shimmer loading effect
  */
 @Composable
@@ -109,38 +91,13 @@ fun ShimmerEffect(
     )
 
     Box(
-        modifier = modifier
-            .background(brush)
+        modifier = modifier.background(brush)
     )
 }
 
-/**
- * Bounce animation for icons/buttons
- */
 @Composable
-fun BounceAnimation(
-    trigger: Boolean = false,
-    content: @Composable () -> Unit
-) {
-    val scale = remember { Animatable(1f) }
-
-    LaunchedEffect(trigger) {
-        if (trigger) {
-            scale.animateTo(
-                targetValue = 0.9f,
-                animationSpec = tween(100)
-            )
-            scale.animateTo(
-                targetValue = 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
-            )
-        }
-    }
-
-    Box(modifier = Modifier.graphicsLayer(scaleX = scale.value, scaleY = scale.value)) {
+private fun Box(modifier: Modifier, content: @Composable () -> Unit = {}) {
+    androidx.compose.foundation.layout.Box(modifier = modifier) {
         content()
     }
 }
