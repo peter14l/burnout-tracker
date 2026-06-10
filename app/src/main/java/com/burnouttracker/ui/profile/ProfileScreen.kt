@@ -15,16 +15,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    onSettings: () -> Unit
+    onSettings: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val userName = "Stella"
-    val joinDate = "June 2026"
-    val totalCheckIns = 47
-    val currentStreak = 4
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -33,44 +32,59 @@ fun ProfileScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Profile header
-            item {
-                ProfileHeader(
-                    name = userName,
-                    joinDate = joinDate
-                )
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Profile header
+                item {
+                    ProfileHeader(
+                        name = uiState.userName,
+                        joinDate = uiState.joinDate
+                    )
+                }
 
-            // Stats
-            item {
-                StatsCard(
-                    totalCheckIns = totalCheckIns,
-                    currentStreak = currentStreak,
-                    averageStress = 5.2,
-                    plansCompleted = 12
-                )
-            }
+                // Stats
+                item {
+                    StatsCard(
+                        totalCheckIns = uiState.totalCheckIns,
+                        currentStreak = uiState.currentStreak,
+                        averageStress = uiState.averageStress,
+                        plansCompleted = uiState.plansCompleted
+                    )
+                }
 
-            // Achievements
-            item {
-                AchievementsSection()
-            }
+                // Achievements
+                item {
+                    AchievementsSection(
+                        totalCheckIns = uiState.totalCheckIns,
+                        currentStreak = uiState.currentStreak,
+                        averageStress = uiState.averageStress
+                    )
+                }
 
-            // Settings options
-            item {
-                SettingsSection(onSettings = onSettings)
-            }
+                // Settings options
+                item {
+                    SettingsSection(onSettings = onSettings)
+                }
 
-            // Bottom spacing
-            item {
-                Spacer(modifier = Modifier.height(80.dp))
+                // Bottom spacing
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
         }
     }
@@ -194,7 +208,34 @@ fun StatItem(
 }
 
 @Composable
-fun AchievementsSection() {
+fun AchievementsSection(
+    totalCheckIns: Int,
+    currentStreak: Int,
+    averageStress: Double
+) {
+    val achievements = listOf(
+        AchievementData(
+            emoji = "🔥",
+            title = "On Fire",
+            unlocked = currentStreak >= 3
+        ),
+        AchievementData(
+            emoji = "🧘",
+            title = "Zen Master",
+            unlocked = averageStress <= 3.0
+        ),
+        AchievementData(
+            emoji = "💪",
+            title = "Resilient",
+            unlocked = totalCheckIns >= 30
+        ),
+        AchievementData(
+            emoji = "🎯",
+            title = "Goal Digger",
+            unlocked = totalCheckIns >= 50
+        )
+    )
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp)
@@ -216,30 +257,23 @@ fun AchievementsSection() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                AchievementBadge(
-                    emoji = "🔥",
-                    title = "On Fire",
-                    unlocked = true
-                )
-                AchievementBadge(
-                    emoji = "🧘",
-                    title = "Zen Master",
-                    unlocked = true
-                )
-                AchievementBadge(
-                    emoji = "💪",
-                    title = "Resilient",
-                    unlocked = false
-                )
-                AchievementBadge(
-                    emoji = "🎯",
-                    title = "Goal Digger",
-                    unlocked = false
-                )
+                achievements.forEach { achievement ->
+                    AchievementBadge(
+                        emoji = achievement.emoji,
+                        title = achievement.title,
+                        unlocked = achievement.unlocked
+                    )
+                }
             }
         }
     }
 }
+
+data class AchievementData(
+    val emoji: String,
+    val title: String,
+    val unlocked: Boolean
+)
 
 @Composable
 fun AchievementBadge(

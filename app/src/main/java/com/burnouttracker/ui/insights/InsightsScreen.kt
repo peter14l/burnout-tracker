@@ -15,32 +15,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.burnouttracker.ui.theme.StressModerate
-import com.burnouttracker.ui.theme.StressLow
-import com.burnouttracker.ui.theme.StressHigh
-import com.burnouttracker.ui.theme.getStressColor
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.burnouttracker.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InsightsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: InsightsViewModel = hiltViewModel()
 ) {
-    val sampleTrendData = listOf(
-        "Mon" to 7.0,
-        "Tue" to 6.0,
-        "Wed" to 5.0,
-        "Thu" to 6.0,
-        "Fri" to 4.0,
-        "Sat" to 3.0,
-        "Sun" to 4.0
-    )
-
-    val topTriggers = listOf(
-        "Rent/Mortgage" to 45,
-        "Credit Card" to 30,
-        "Food Spending" to 15,
-        "Other" to 10
-    )
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -57,49 +41,66 @@ fun InsightsScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Burnout Risk Card
-            item {
-                BurnoutRiskCard(
-                    riskLevel = "Moderate",
-                    riskColor = StressModerate,
-                    message = "Consider using some recovery tools this week."
-                )
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Burnout Risk Card
+                item {
+                    BurnoutRiskCard(
+                        riskLevel = uiState.burnoutRisk.displayName,
+                        riskColor = getStressColor(uiState.averageStress.toInt()),
+                        message = uiState.riskMessage
+                    )
+                }
 
-            // Trend Card
-            item {
-                TrendCard(
-                    trendData = sampleTrendData,
-                    weeklyChange = -1.2,
-                    monthlyChange = -0.8
-                )
-            }
+                // Trend Card
+                if (uiState.weeklyTrend.isNotEmpty()) {
+                    item {
+                        TrendCard(
+                            trendData = uiState.weeklyTrend,
+                            weeklyChange = uiState.weeklyChange,
+                            monthlyChange = uiState.monthlyChange
+                        )
+                    }
+                }
 
-            // Top Triggers
-            item {
-                TopTriggersCard(triggers = topTriggers)
-            }
+                // Top Triggers
+                if (uiState.topTriggers.isNotEmpty()) {
+                    item {
+                        TopTriggersCard(
+                            triggers = uiState.topTriggers.map { it.trigger to it.percentage.toInt() }
+                        )
+                    }
+                }
 
-            // Spending vs Mood Correlation
-            item {
-                CorrelationCard(correlationScore = 0.65)
-            }
+                // Spending vs Mood Correlation
+                item {
+                    CorrelationCard(correlationScore = uiState.spendingMoodCorrelation)
+                }
 
-            // Recommendations
-            item {
-                RecommendationsCard()
-            }
+                // Recommendations
+                item {
+                    RecommendationsCard()
+                }
 
-            // Bottom spacing
-            item {
-                Spacer(modifier = Modifier.height(80.dp))
+                // Bottom spacing
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
         }
     }
@@ -317,7 +318,7 @@ fun CorrelationCard(correlationScore: Double) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "${(correlationScore * 100).toInt()}%",
+                text = "${(kotlin.math.abs(correlationScore) * 100).toInt()}%",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -326,7 +327,11 @@ fun CorrelationCard(correlationScore: Double) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Your spending patterns show a moderate correlation with your mood. High spending on entertainment tends to coincide with lower stress levels.",
+                text = when {
+                    correlationScore > 0.3 -> "Your spending and stress levels show a positive correlation. Higher spending days tend to coincide with higher stress."
+                    correlationScore < -0.3 -> "Good news! Your spending and stress show an inverse relationship - spending on the right things may help reduce stress."
+                    else -> "Start logging more expenses and check-ins to see your spending-mood correlation."
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
