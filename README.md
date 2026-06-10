@@ -13,7 +13,7 @@ A mobile application designed to help Gen Z users track, understand, and recover
 ## Tech Stack
 
 - **Language:** Kotlin 2.0+
-- **UI:** Jetpack Compose with Material 3
+- **UI:** Jetpack Compose with Material 3 Expressive (animated transitions, dynamic color, gesture-driven interactions)
 - **Architecture:** MVVM + Clean Architecture
 - **DI:** Hilt
 - **Database:** Room
