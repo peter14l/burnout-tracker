@@ -47,7 +47,7 @@ fun StressAvatar(
 
     val avatarData = getAvatarForStress(stressLevel)
 
-    val sizeDp = size.dp
+    val sizeDp = size.sizeDp.dp
 
     Box(
         modifier = modifier.size(sizeDp),
@@ -119,7 +119,7 @@ fun StressAvatar(
     }
 }
 
-enum class AvatarSize(val dp: Int) {
+enum class AvatarSize(val sizeDp: Int) {
     Small(64),
     Medium(96),
     Large(140),
