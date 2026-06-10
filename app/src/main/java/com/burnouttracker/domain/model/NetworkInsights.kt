@@ -288,7 +288,7 @@ class NetworkInsightsManager {
                 TrendInsight(
                     title = "Spending Pattern",
                     description = "You're spending less on impulse purchases",
-                    percentage = (stats.totalSaved / 127f * 100).coerceAtMost(100f),
+                    percentage = (stats.totalSaved.toFloat() / 127f * 100).coerceAtMost(100f),
                     trendDirection = TrendDirection.IMPROVING,
                     icon = "💰"
                 )
