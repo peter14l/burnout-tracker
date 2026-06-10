@@ -28,7 +28,6 @@ jobs:
         if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > app/google-services.json
         else
-          echo "No google-services.json found, creating placeholder"
           cat > app/google-services.json << 'EOF'
         {
           "project_info": {
@@ -46,17 +45,16 @@ jobs:
                 }
               },
               "api_key": [{"current_key": "mock-api-key"}],
-              "services": {
-                "appinvite_service": {
-                  "other_platform_oauth_client": []
-                }
-              }
+              "services": {}
             }
           ],
           "configuration_version": "1"
         }
         EOF
         fi
+    
+    - name: Make gradlew executable
+      run: chmod +x gradlew
     
     - name: Build release APK
       run: ./gradlew assembleRelease
